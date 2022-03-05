@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass';
 import { Thanos } from './Thanos';
 import { SoundPlayer } from './SoundPlayer';
 import { DoubleSide, LoadingManager, Wrapping } from 'three';
@@ -221,6 +222,10 @@ const bloomPass = new UnrealBloomPass(
 bloomPass.renderToScreen = true;
 composer.addPass(bloomPass);
 
+let glitchPass = new GlitchPass();
+composer.addPass(glitchPass);
+let glitched = true;
+
 function animate() {
   let timeDelta = clock.getDelta();
   uniforms.u_time.value += timeDelta;
@@ -274,7 +279,11 @@ function animate() {
         scene.remove(cityScene);
         scene.add(gtaScene);
       }
+
       time = Date.now();
+    }
+    if (Math.random() > 0) {
+      camera.position.x += Math.sin(theta);
     }
     cityScene.rotation.y += Math.cos(theta) / 2;
     gtaScene.rotation.y += Math.sin(theta) / 2;
@@ -291,6 +300,15 @@ function animate() {
   theta += 0.01;
   lightPortal.position.z += Math.sin(theta);
   if (Date.now() - stopTimer < 157000) {
+    if (Math.random() > 0.5) {
+      if (glitched) {
+        composer.removePass(glitchPass);
+        glitched = false;
+      } else {
+        composer.addPass(glitchPass);
+        glitched = true;
+      }
+    }
     requestAnimationFrame(animate);
     // envManager.render();
     composer.render();
