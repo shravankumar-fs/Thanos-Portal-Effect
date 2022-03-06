@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
 export class Thanos {
-  public isModelLoaded = false;
   public model: THREE.Group = new THREE.Group();
 
   public animationActions: THREE.AnimationAction[] = [];
@@ -10,6 +9,9 @@ export class Thanos {
   public lastAction!: THREE.AnimationAction;
   private fbxLoader: FBXLoader = new FBXLoader();
   private mixer!: THREE.AnimationMixer;
+  modelLoaded = false;
+  dance1Loaded = false;
+  dance2Loaded = false;
 
   constructor() {
     this.init();
@@ -62,7 +64,7 @@ export class Thanos {
         this.model.add(object);
         this.model.scale.set(1.5, 1.5, 1.5);
         this.model.position.set(0, -200, 400);
-
+        this.modelLoaded = true;
         this.fbxLoader.load(
           'dance1.fbx',
           (dance) => {
@@ -72,7 +74,7 @@ export class Thanos {
             this.animationActions.push(animationAction);
             this.setAction(this.animationActions[1]);
             this.activeAction = this.animationActions[1];
-
+            this.dance1Loaded = true;
             this.fbxLoader.load(
               'dance2.fbx',
               (dance2) => {
@@ -81,7 +83,7 @@ export class Thanos {
                 );
                 this.animationActions.push(animationAction);
                 console.log(this.animationActions);
-                this.isModelLoaded = true;
+                this.dance2Loaded = true;
               },
               (xhr) => {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -133,5 +135,9 @@ export class Thanos {
 
   updateMixer(time: number) {
     this.mixer.update(time);
+  }
+
+  isModelLoaded() {
+    return this.modelLoaded && this.dance1Loaded && this.dance2Loaded;
   }
 }

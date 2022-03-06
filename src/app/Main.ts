@@ -7,7 +7,6 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass';
 import { Thanos } from './Thanos';
 import { SoundPlayer } from './SoundPlayer';
-import { DoubleSide, LoadingManager, Wrapping } from 'three';
 
 let envManager = new EnvironmentManager();
 let scene = envManager.scene;
@@ -115,40 +114,8 @@ setGTAScene2();
 
 const listener = new THREE.AudioListener();
 camera.add(listener);
-const sound = new THREE.Audio(listener);
-// const mainMusic = new SoundPlayer('sound/kehendi.mp3', sound);
-let storm: SoundPlayer | undefined;
 
 let thanos = new Thanos();
-
-let theta = 0;
-let time = Date.now();
-
-const intervals = [
-  {
-    duration: 6,
-    map: undefined,
-    portal: true,
-  },
-  {
-    duration: 14,
-    map: cityScene!,
-    portal: true,
-  },
-  {
-    duration: 20,
-    map: cityScene!,
-    portal: false,
-  },
-  {
-    duration: 30,
-    map: gtaScene!,
-    portal: false,
-  },
-];
-let mainMusic: SoundPlayer | undefined;
-let firstTime = true;
-let finalLoop = false;
 
 const vshader = `
 varying vec2 vUv;
@@ -201,12 +168,12 @@ const material = new THREE.ShaderMaterial({
   vertexShader: vshader,
   fragmentShader: fshader,
   transparent: true,
-  opacity: 0.6,
-  side: DoubleSide,
+  opacity: 0.5,
+  side: THREE.DoubleSide,
 });
 const plane = new THREE.Mesh(geometry, material);
 plane.rotation.x += Math.PI / 2;
-plane.position.y = -800;
+plane.position.y = -600;
 
 scene.add(plane);
 let stopTimer = Date.now();
@@ -223,42 +190,57 @@ bloomPass.renderToScreen = true;
 composer.addPass(bloomPass);
 
 let glitchPass = new GlitchPass();
-composer.addPass(glitchPass);
-let glitched = true;
+let glitched = false;
+const glitchButton = document.getElementById('glitches');
+
+let storm: SoundPlayer = new SoundPlayer('sound/thunder.mp3', listener);
+let musics: SoundPlayer[] = [];
+for (let i = 1; i <= 3; i++) {
+  let music: SoundPlayer = new SoundPlayer('sound/drop' + i + '.mp3', listener);
+  musics.push(music);
+}
+let controlsUpdate = false;
+let firstTime = true;
+let finalLoop = false;
+const intervals = [6, 10, 14, 18];
+let theta = 0;
+let time = Date.now();
 
 function animate() {
   let timeDelta = clock.getDelta();
   uniforms.u_time.value += timeDelta;
   let diff = Date.now() - time;
-  if (thanos.isModelLoaded && scene.getObjectById(thanos.model.id)) {
+  if (scene.getObjectById(thanos.model.id)) {
     thanos.updateMixer(timeDelta);
     if (!thanos.activeAction.isRunning()) {
       thanos.setAction(thanos.lastAction);
       thanos.model.position.y = thanos.model.position.y === -500 ? -300 : -500;
     }
   }
-  if (!finalLoop && diff < intervals[0].duration * 1000) {
+  if (!finalLoop && diff < intervals[0] * 1000) {
     if (diff > 3000 && firstTime) {
       controls.enabled = false;
       if (storm) storm.stop();
-      mainMusic = new SoundPlayer('sound/kehendi.mp3', sound);
+      musics[2].play();
       scene.add(thanos.model);
       thanos.model.visible = false;
       firstTime = false;
     }
-  } else if (!finalLoop && diff < intervals[1].duration * 1000) {
+  } else if (!finalLoop && diff < intervals[1] * 1000) {
     if (!firstTime) {
       thanos.model.visible = true;
       scene.add(cityScene);
       firstTime = true;
     }
-  } else if (!finalLoop && diff < intervals[2].duration * 1000) {
+  } else if (!finalLoop && diff < intervals[2] * 1000) {
     if (firstTime) {
       scene.remove(portalParticles);
       firstTime = false;
       controls.enabled = true;
+      controlsUpdate = true;
+      thanos.model.position.z = 0;
     }
-  } else if (!finalLoop && diff < intervals[3].duration * 1000) {
+  } else if (!finalLoop && diff < intervals[3] * 1000) {
     if (!firstTime) {
       scene.remove(cityScene);
       scene.add(gtaScene);
@@ -268,60 +250,69 @@ function animate() {
   } else {
     finalLoop = true;
 
-    if (Date.now() - time > 4000) {
+    if (Date.now() - time > 5000) {
       if (scene.getObjectById(gtaScene.id)) {
         scene.remove(gtaScene);
         scene.add(gtaScene2);
+        musics[1].play();
+        musics[2].pause();
       } else if (scene.getObjectById(gtaScene2.id)) {
         scene.remove(gtaScene2);
         scene.add(cityScene);
+        musics[0].play();
+        musics[1].pause();
       } else if (scene.getObjectById(cityScene.id)) {
         scene.remove(cityScene);
         scene.add(gtaScene);
+        musics[2].play();
+        musics[0].pause();
       }
 
       time = Date.now();
     }
-    if (Math.random() > 0) {
-      camera.position.x += Math.sin(theta);
-    }
-    cityScene.rotation.y += Math.cos(theta) / 2;
-    gtaScene.rotation.y += Math.sin(theta) / 2;
-    gtaScene2.rotation.y += Math.cos(theta) / 2;
-  }
 
-  portalParticles.children.forEach((p) => {
-    p.rotation.z -= timeDelta * 1.5;
-  });
+    camera.position.x += Math.sin(theta) / 2;
+
+    cityScene.rotation.y += Math.cos(theta) / 5;
+    gtaScene.rotation.y += Math.sin(theta) / 5;
+    gtaScene2.rotation.y += Math.cos(theta) / 5;
+  }
+  if (scene.getObjectById(portalParticles.id)) {
+    portalParticles.children.forEach((p) => {
+      p.rotation.z -= timeDelta * 1.5;
+    });
+  }
 
   if (Math.random() > 0.9) {
     lightPortal.power = 350 + Math.random() * 500;
   }
   theta += 0.01;
   lightPortal.position.z += Math.sin(theta);
-  if (Date.now() - stopTimer < 157000) {
-    if (Math.random() > 0.5) {
-      if (glitched) {
-        composer.removePass(glitchPass);
-        glitched = false;
-      } else {
-        composer.addPass(glitchPass);
-        glitched = true;
-      }
-    }
+  if (Date.now() - stopTimer < 65000) {
     requestAnimationFrame(animate);
     // envManager.render();
     composer.render();
+
+    if (controlsUpdate) {
+      controls.update();
+    }
   } else {
-    mainMusic?.stop();
+    document.getElementById('glitches')?.classList.add('hide');
+    musics.forEach((item) => item.stop());
     const doc = document.createElement('div');
     doc.classList.add('loading');
     doc.id = 'loading';
     doc.innerHTML = `<div>Thanks for watching, follow me <a href="https://twitter.com/shravankumarui" target="_blank">@shravankumarui</a> on twitter;</div>
       <div>Credits
-      <ul><li>Ap Dhillon, Gurinder gill - Excuses (for audio)</li>
+      <ul><li>Music from uppbeat.io 
+        <ul>
+            <li><a href="https://uppbeat.io/t/exekat/cyberpunk-city">exekat/cyberpunkcity</a></li>
+            <li><a href="https://uppbeat.io/t/exekat/bang">exekat/bang</a></li>
+            <li><a href="https://uppbeat.io/t/infraction/drop-it">infraction/drop it<a>infraction/drop it</a></li>
+        </ul>
+      </li>
       <li>Threejs javascript library, WebGL Shaders, Typescript :) </li>
-      <li>Kirll Gorskikh's Free Thanos 3D model <a href="https://sketchfab.com/Kirill.Gorskikh">link</a></li>
+      <li>Kirll Gorskikh's Free <a href="https://sketchfab.com/Kirill.Gorskikh"> Thanos 3D model</a> on sketchfab</li>
       <li>Images from Unsplash</li>
       </ul>
       </div>`;
@@ -329,9 +320,33 @@ function animate() {
     document.querySelector('canvas')?.remove();
   }
 }
-
+let oldValue = glitchButton?.innerHTML;
+glitchButton?.addEventListener('click', () => {
+  if (glitched) {
+    composer.removePass(glitchPass);
+    glitched = false;
+    glitchButton.innerHTML = `` + oldValue;
+  } else {
+    composer.addPass(glitchPass);
+    glitched = true;
+    glitchButton.innerHTML = `Remove glitch`;
+  }
+});
+function startRendering() {
+  let interval = setInterval(() => {
+    if (
+      thanos.isModelLoaded() &&
+      musics.filter((item) => item.isSoundLoaded).length == 3
+    ) {
+      time = Date.now();
+      animate();
+      document.getElementById('glitches')?.classList.remove('hide');
+      clearInterval(interval);
+    }
+  }, 40);
+}
 document.getElementById('animatePage')?.addEventListener('click', () => {
-  storm = new SoundPlayer('sound/thunder.mp3', sound);
-  animate();
+  storm.play();
+  startRendering();
   document.getElementById('loading')?.remove();
 });
