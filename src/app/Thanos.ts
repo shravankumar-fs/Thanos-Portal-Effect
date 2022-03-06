@@ -12,6 +12,8 @@ export class Thanos {
   modelLoaded = false;
   dance1Loaded = false;
   dance2Loaded = false;
+  modelUpdateLoaded = false;
+  status = [0, 0, 0];
 
   constructor() {
     this.init();
@@ -64,7 +66,7 @@ export class Thanos {
         this.model.add(object);
         this.model.scale.set(1.5, 1.5, 1.5);
         this.model.position.set(0, -200, 400);
-        this.modelLoaded = true;
+        this.modelUpdateLoaded = true;
         this.fbxLoader.load(
           'dance1.fbx',
           (dance) => {
@@ -74,7 +76,6 @@ export class Thanos {
             this.animationActions.push(animationAction);
             this.setAction(this.animationActions[1]);
             this.activeAction = this.animationActions[1];
-            this.dance1Loaded = true;
             this.fbxLoader.load(
               'dance2.fbx',
               (dance2) => {
@@ -82,13 +83,12 @@ export class Thanos {
                   (dance2 as THREE.Object3D).animations[0]
                 );
                 this.animationActions.push(animationAction);
-                console.log(this.animationActions);
-                this.dance2Loaded = true;
               },
               (xhr) => {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
                 if (xhr.loaded === xhr.total) {
                   console.log('loaded dance2');
+                  this.dance2Loaded = true;
                 }
               },
               (error) => {
@@ -100,6 +100,7 @@ export class Thanos {
             console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
             if (xhr.loaded === xhr.total) {
               console.log('loaded dance1');
+              this.dance1Loaded = true;
             }
           },
           (error) => {
@@ -109,6 +110,11 @@ export class Thanos {
       },
       (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        this.status[0] = xhr.loaded / xhr.total;
+        if (xhr.loaded === xhr.total) {
+          console.log('loaded model');
+          this.modelLoaded = true;
+        }
       },
       (error) => {
         console.log(error);
@@ -138,6 +144,11 @@ export class Thanos {
   }
 
   isModelLoaded() {
-    return this.modelLoaded && this.dance1Loaded && this.dance2Loaded;
+    return (
+      this.modelLoaded &&
+      this.dance1Loaded &&
+      this.dance2Loaded &&
+      this.modelUpdateLoaded
+    );
   }
 }

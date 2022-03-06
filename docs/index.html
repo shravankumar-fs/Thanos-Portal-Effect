@@ -4,20 +4,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="shortcut icon" href="favicon.ico" />
-    <title>Thanos Portal Dance</title>
     <link rel="stylesheet" href="style.css" />
+    <title>Thanos Portal Dance</title>
   </head>
   <body>
     <div class="loading" id="loading">
-      <button id="animatePage">
+      <button id="animatePage" class="hide">
         <span></span>
         <span></span>
         <span></span>
         <span></span>
         Click To Start
       </button>
+      <p class="loadingRoll" id="loadingRoll">Loading</p>
     </div>
-    <button class="glitches hide" id="glitches">Glitch me 🤪</button>
+
+    <div class="glitches hide" id="glitches">Glitch me 🤪</div>
     <script type="module" src="bundle.js"></script>
   </body>
 </html>

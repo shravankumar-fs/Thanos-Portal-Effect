@@ -36,6 +36,52 @@ body {
   border-radius: 0.5px;
   font-weight: 400;
 }
+.loadingRoll {
+  position: relative;
+  background-color: #000;
+  padding: 15px 30px;
+  color: var(--neon-main);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-decoration: none;
+  font-size: 24px;
+  border: 0;
+  cursor: pointer;
+  z-index: 11;
+  cursor: progress;
+}
+.loadingRoll::before {
+  content: '';
+  position: absolute;
+  height: 5px;
+  width: 100%;
+  left: 0;
+  top: 50px;
+  background-color: gray;
+  border-radius: 2px;
+  z-index: 12;
+}
+.loadingRoll::after {
+  content: '';
+  position: absolute;
+  height: 5px;
+  width: 15px;
+  left: 0;
+  top: 50px;
+  border-radius: 2px;
+  background-color: var(--neon-main);
+  animation: loadingRollAnime 1s infinite linear;
+  z-index: 13;
+}
+@keyframes loadingRollAnime {
+  from {
+    left: calc(0% + 15px);
+  }
+  to {
+    left: calc(100% - 15px);
+  }
+}
+
 .loading li {
   list-style: linear-gradient(135deg, green, white, red) lower-latin;
 }
@@ -140,6 +186,11 @@ button:hover span:nth-child(4) {
   -moz-animation: glitches 3s infinite ease-in-out;
   -webkit-animation: glitches 3s infinite ease-in-out;
   border-radius: 10px;
+  background-color: #000;
+  display: inline-block;
+  padding: 15px 30px;
+  color: var(--neon-main);
+  cursor: pointer;
 }
 .hide {
   display: none;

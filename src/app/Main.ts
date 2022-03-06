@@ -204,7 +204,7 @@ let firstTime = true;
 let finalLoop = false;
 const intervals = [6, 10, 14, 18];
 let theta = 0;
-let time = Date.now();
+let time = 0;
 
 function animate() {
   let timeDelta = clock.getDelta();
@@ -333,12 +333,20 @@ glitchButton?.addEventListener('click', () => {
   }
 });
 function startRendering() {
+  storm.play();
+  time = Date.now();
+  stopTimer = Date.now();
+  animate();
+  document.getElementById('glitches')?.classList.remove('hide');
+
   let interval = setInterval(() => {
     if (
       thanos.isModelLoaded() &&
-      musics.filter((item) => item.isSoundLoaded).length == 3
+      musics.filter((item) => item.isSoundLoaded()).length == 3
     ) {
+      storm.play();
       time = Date.now();
+      stopTimer = Date.now();
       animate();
       document.getElementById('glitches')?.classList.remove('hide');
       clearInterval(interval);
@@ -346,7 +354,16 @@ function startRendering() {
   }, 40);
 }
 document.getElementById('animatePage')?.addEventListener('click', () => {
-  storm.play();
   startRendering();
   document.getElementById('loading')?.remove();
 });
+let interval = setInterval(() => {
+  if (
+    thanos.isModelLoaded() &&
+    musics.filter((item) => item.isSoundLoaded()).length == 3
+  ) {
+    document.getElementById('loadingRoll')?.remove();
+    document.getElementById('animatePage')?.classList.remove('hide');
+    clearInterval(interval);
+  }
+}, 40);

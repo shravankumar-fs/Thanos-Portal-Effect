@@ -2,9 +2,11 @@ import * as THREE from 'three';
 
 export class SoundPlayer {
   audioLoader = new THREE.AudioLoader();
-  isSoundLoaded = false;
+  soundLoaded = false;
+  soundUpdateLoaded = false;
   sound: THREE.Audio;
 
+  status: number = 0;
   constructor(path: string, private listener: THREE.AudioListener) {
     this.sound = new THREE.Audio(listener);
     this.init(path);
@@ -18,12 +20,14 @@ export class SoundPlayer {
         this.sound.setVolume(1);
         this.sound.play();
         this.sound.pause();
-        this.isSoundLoaded = true;
+        this.soundLoaded = true;
       },
       (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        this.status = xhr.loaded / xhr.total;
         if (xhr.loaded === xhr.total) {
-          console.log('loaded sound' + path);
+          console.log('loaded : ' + path);
+          this.soundUpdateLoaded = true;
         }
       },
       (error) => {
@@ -40,5 +44,9 @@ export class SoundPlayer {
   }
   stop() {
     this.sound.stop();
+  }
+
+  isSoundLoaded() {
+    return this.soundLoaded && this.soundUpdateLoaded;
   }
 }
