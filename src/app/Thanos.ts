@@ -129,7 +129,6 @@ export class Thanos {
       this.activeAction.reset();
       if (this.activeAction == this.animationActions[0]) {
         this.activeAction.time = 3;
-        // activeAction.;
       }
       this.activeAction.fadeIn(1);
       this.activeAction.play();
