@@ -6,7 +6,6 @@ export class SoundPlayer {
   soundUpdateLoaded = false;
   sound: THREE.Audio;
 
-  status: number = 0;
   constructor(path: string, private listener: THREE.AudioListener) {
     this.sound = new THREE.Audio(listener);
     this.init(path);
@@ -24,7 +23,6 @@ export class SoundPlayer {
       },
       (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-        this.status = xhr.loaded / xhr.total;
         if (xhr.loaded === xhr.total) {
           console.log('loaded : ' + path);
           this.soundUpdateLoaded = true;

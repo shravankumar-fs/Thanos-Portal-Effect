@@ -13,7 +13,6 @@ export class Thanos {
   dance1Loaded = false;
   dance2Loaded = false;
   modelUpdateLoaded = false;
-  status = [0, 0, 0];
 
   constructor() {
     this.init();
@@ -110,7 +109,6 @@ export class Thanos {
       },
       (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-        this.status[0] = xhr.loaded / xhr.total;
         if (xhr.loaded === xhr.total) {
           console.log('loaded model');
           this.modelLoaded = true;
